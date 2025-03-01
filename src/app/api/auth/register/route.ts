@@ -21,8 +21,8 @@ export async function POST(req: Request) {
     })
 
     if (existingUser) {
-      return new NextResponse(
-        JSON.stringify({ error: "このメールアドレスは既に登録されています" }),
+      return NextResponse.json(
+        { error: "このメールアドレスは既に登録されています" },
         { status: 409 }
       )
     }
@@ -37,10 +37,12 @@ export async function POST(req: Request) {
         password: hashedPassword,
         gender: body.gender,
         birthDate: birthDate,
+        interests: [],
       },
     })
 
     return NextResponse.json({
+      success: true,
       user: {
         id: user.id,
         name: user.name,
@@ -48,8 +50,6 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error("Registration error:", error)
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "入力データが無効です", details: error.errors },
@@ -57,9 +57,10 @@ export async function POST(req: Request) {
       )
     }
 
+    console.error("Registration error:", error)
     return NextResponse.json(
-      { error: "内部サーバーエラー" },
+      { error: "アカウント作成に失敗しました" },
       { status: 500 }
     )
   }
-} 
+}

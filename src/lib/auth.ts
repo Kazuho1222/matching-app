@@ -1,42 +1,24 @@
-import type { AuthConfig } from "@auth/core"
-import Credentials from "@auth/core/providers/credentials"
-import Google from "@auth/core/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import bcrypt from "bcryptjs"
-import { prisma } from "./prisma"
+import Google from "@auth/core/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
+import NextAuth from 'next-auth';
+import Credentials from "next-auth/providers/credentials";
+import { prisma } from "./prisma";
 
-// セッションの型定義
-declare module "@auth/core/types" {
-  interface Session {
-    user: {
-      id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-    }
-  }
-}
-
-declare module "@auth/core/jwt" {
-  interface JWT {
-    id: string
-  }
-}
-
-export const authConfig = {
+export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
   },
   pages: {
     signIn: '/login',
-    error: '/error',
   },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "credentials",
@@ -73,7 +55,7 @@ export const authConfig = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
       }
@@ -81,9 +63,14 @@ export const authConfig = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id
+        session.user.id = token.id as string
       }
       return session
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith(baseUrl)) return url
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      return baseUrl + '/dashboard'
+    },
   },
-} satisfies AuthConfig
+})

@@ -8,32 +8,26 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ユーザーモデル
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  name       String?
-  password   String
-  image      String?
-  gender     Gender
-  birthDate  DateTime
-  bio        String?  @db.Text
-  occupation String?
-  location   String?
-  interests  String[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // 関連フィールド
-  profile          Profile?
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  password         String
+  image            String?
+  gender           Gender
+  birthDate        DateTime
+  interests        String[]  @default([])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  emailVerified    DateTime?
   sentLikes        Like[]    @relation("SentLikes")
   receivedLikes    Like[]    @relation("ReceivedLikes")
+  matches          Match[]
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
-  matches          Match[]
+  profile          Profile?
 }
 
-// プロフィールモデル（詳細情報）
 model Profile {
   id         String   @id @default(cuid())
   userId     String   @unique
@@ -48,53 +42,45 @@ model Profile {
   hobbies    String[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// いいねモデル
 model Like {
   id         String   @id @default(cuid())
   fromUserId String
   toUserId   String
   createdAt  DateTime @default(now())
-
-  fromUser User @relation("SentLikes", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser   User @relation("ReceivedLikes", fields: [toUserId], references: [id], onDelete: Cascade)
+  fromUser   User     @relation("SentLikes", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReceivedLikes", fields: [toUserId], references: [id], onDelete: Cascade)
 
   @@unique([fromUserId, toUserId])
 }
 
-// マッチモデル
 model Match {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   user1Id   String
   user2Id   String
-  createdAt DateTime @default(now())
-
-  user1    User      @relation(fields: [user1Id], references: [id], onDelete: Cascade)
-  messages Message[]
+  createdAt DateTime  @default(now())
+  user1     User      @relation(fields: [user1Id], references: [id], onDelete: Cascade)
+  messages  Message[]
 
   @@unique([user1Id, user2Id])
 }
 
-// メッセージモデル
 model Message {
   id         String   @id @default(cuid())
-  content    String   @db.Text
+  content    String
   matchId    String
   fromUserId String
   toUserId   String
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  match    Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  fromUser User  @relation("SentMessages", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser   User  @relation("ReceivedMessages", fields: [toUserId], references: [id], onDelete: Cascade)
+  fromUser   User     @relation("SentMessages", fields: [fromUserId], references: [id], onDelete: Cascade)
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReceivedMessages", fields: [toUserId], references: [id], onDelete: Cascade)
 }
 
-// 性別の列挙型
 enum Gender {
   MALE
   FEMALE
