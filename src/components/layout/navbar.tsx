@@ -10,7 +10,8 @@ export function Navbar() {
   const { data: session, status } = useSession()
   const isLoggedIn = status === "authenticated"
   const pathname = usePathname()
-  const isHomePage = pathname === "/"
+  const isLoginPage = pathname === "/login"
+  const isRegisterPage = pathname === "/register"
 
   return (
     <nav className="border-b">
@@ -45,11 +46,13 @@ export function Navbar() {
             </Button>
           ) : (
             <>
-              <Button asChild variant="ghost">
-                <Link href="/login">ログイン</Link>
-              </Button>
+              {!isLoginPage && (
+                <Button asChild variant="ghost">
+                  <Link href="/login">ログイン</Link>
+                </Button>
+              )}
 
-              {isHomePage && (
+              {!isRegisterPage && (
                 <Button asChild>
                   <Link href="/register">新規登録</Link>
                 </Button>

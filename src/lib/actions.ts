@@ -52,6 +52,7 @@ export async function registerUser(formData: FormData) {
         gender,
         birthDate: new Date(birthDate),
         interests: [],
+        image: "/images/default-avatar.svg",
       },
     })
 
@@ -124,5 +125,37 @@ export async function setupProfile(formData: FormData) {
       throw new Error("入力内容を確認してください")
     }
     throw new Error("プロフィールの設定に失敗しました")
+  }
+}
+
+// 管理者用: 既存のユーザーのデフォルトアバターを更新する関数
+export async function updateDefaultAvatars() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("認証が必要です")
+  }
+
+  try {
+    // 管理者権限チェックなどが必要な場合はここに追加
+
+    await prisma.user.updateMany({
+      where: {
+        OR: [
+          { image: null },
+          { image: "/default-avatar.png" },
+          { image: "/images/default-avatar.png" }
+        ]
+      },
+      data: {
+        image: "/images/default-avatar.svg"
+      }
+    })
+
+    return { success: true, message: "デフォルトアバターを更新しました" }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message)
+    }
+    throw new Error("アバターの更新に失敗しました")
   }
 } 
