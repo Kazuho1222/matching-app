@@ -1,22 +1,61 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client"
+
 import { ModeToggle } from "@/components/mode-toggle"
+import { Button } from "@/components/ui/button"
+import { signOut as authSignOut, useSession } from "next-auth/react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Navbar() {
+  const { data: session, status } = useSession()
+  const isLoggedIn = status === "authenticated"
+  const pathname = usePathname()
+  const isHomePage = pathname === "/"
+
   return (
     <nav className="border-b">
       <div className="container flex h-16 items-center px-4">
-        <Link href="/" className="font-bold">
+        <Link href={isLoggedIn ? "/dashboard" : "/"} className="font-bold">
           Matching App
         </Link>
+
+        {isLoggedIn && (
+          <div className="ml-10 hidden md:flex items-center space-x-4">
+            <Link href="/dashboard" className="text-sm font-medium hover:text-primary">
+              ダッシュボード
+            </Link>
+            <Link href="/matches" className="text-sm font-medium hover:text-primary">
+              マッチング
+            </Link>
+            <Link href="/messages" className="text-sm font-medium hover:text-primary">
+              メッセージ
+            </Link>
+          </div>
+        )}
+
         <div className="ml-auto flex items-center space-x-4">
           <ModeToggle />
-          <Button asChild variant="ghost">
-            <Link href="/login">ログイン</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/register">新規登録</Link>
-          </Button>
+
+          {isLoggedIn ? (
+            <Button
+              onClick={() => authSignOut({ callbackUrl: "/" })}
+              variant="ghost"
+            >
+              ログアウト
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="ghost">
+                <Link href="/login">ログイン</Link>
+              </Button>
+
+              {isHomePage && (
+                <Button asChild>
+                  <Link href="/register">新規登録</Link>
+                </Button>
+              )}
+            </>
+          )}
         </div>
       </div>
     </nav>

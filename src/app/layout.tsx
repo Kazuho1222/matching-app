@@ -1,7 +1,8 @@
+import { Navbar } from '@/components/layout/navbar'
+import { Providers } from '@/components/providers'
+import { ThemeProvider } from '@/components/theme-provider'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Navbar } from '@/components/layout/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,10 +25,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <Providers>
+            <Navbar />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
