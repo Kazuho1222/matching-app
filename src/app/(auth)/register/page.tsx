@@ -27,10 +27,16 @@ export default function RegisterPage() {
 
   async function handleSubmit(formData: FormData) {
     try {
+      setError(null)
       const result = await registerUser(formData)
-      if (result?.success) {
-        router.push('/login?registered=true')
+
+      if (result?.error) {
+        setError(result.error)
+        return
       }
+
+      // 登録成功後にダッシュボードへリダイレクト
+      router.push('/dashboard')
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)

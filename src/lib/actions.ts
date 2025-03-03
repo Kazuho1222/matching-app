@@ -60,19 +60,16 @@ export async function registerUser(formData: FormData) {
       throw new Error("ユーザーの作成に失敗しました")
     }
 
-    await signIn('credentials', {
+    return await signIn('credentials', {
       email: validatedFields.data.email,
       password: validatedFields.data.password,
-      redirect: true,
-      callbackUrl: '/dashboard'
+      redirect: false
     })
-
-    return { success: true }
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message)
+      return { error: error.message }
     }
-    throw new Error("アカウント作成に失敗しました")
+    return { error: "アカウント作成に失敗しました" }
   }
 }
 

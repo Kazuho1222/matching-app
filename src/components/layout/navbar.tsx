@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation"
 
 export function Navbar() {
   const { data: session, status } = useSession()
+  console.log("Auth Status:", status, session)
   const isLoggedIn = status === "authenticated"
   const pathname = usePathname()
   const isLoginPage = pathname === "/login"
