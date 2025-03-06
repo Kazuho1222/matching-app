@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 
+// runtimeの設定は削除
+
 const registerSchema = z.object({
   name: z.string().min(2, "名前は2文字以上必要です"),
   email: z.string().email("有効なメールアドレスを入力してください"),

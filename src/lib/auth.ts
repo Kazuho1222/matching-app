@@ -5,6 +5,9 @@ import NextAuth from 'next-auth';
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 
+// Node.js runtimeのみで実行されるように明示的に設定
+export const runtime = "nodejs";
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
@@ -31,15 +34,19 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           return null
         }
 
+        // 型アサーションを追加
+        const email = credentials.email as string
+        const password = credentials.password as string
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email }
         })
 
         if (!user || !user.password) {
           return null
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.password)
+        const isValid = await bcrypt.compare(password, user.password)
 
         if (!isValid) {
           return null
@@ -70,7 +77,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl)) return url
       if (url.startsWith('/')) return `${baseUrl}${url}`
-      return baseUrl + '/dashboard'
+      return `${baseUrl}/dashboard`
     },
   },
 })

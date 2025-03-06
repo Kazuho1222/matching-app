@@ -15,12 +15,33 @@ import { Loader2 } from "lucide-react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
+
+// 検索パラメータを使用するコンポーネントを分離
+function LoginMessage({ callbackUrl }: { callbackUrl: string }) {
+  const searchParams = useSearchParams()
+  const error = searchParams.get("error")
+  const registered = searchParams.get("registered")
+
+  return (
+    <>
+      {error && (
+        <div className="text-sm text-red-500 mt-2">
+          ログインに失敗しました。メールアドレスとパスワードを確認してください。
+        </div>
+      )}
+      {registered && (
+        <div className="text-sm text-green-500 mt-2">
+          アカウントが作成されました。ログインしてください。
+        </div>
+      )}
+    </>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  const callbackUrl = "/dashboard"
   const [isEmailLoading, setIsEmailLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState("")
@@ -65,6 +86,9 @@ export default function LoginPage() {
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
+      <Suspense fallback={<div>Loading...</div>}>
+        <LoginMessage callbackUrl={callbackUrl} />
+      </Suspense>
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">ログイン</CardTitle>
@@ -101,12 +125,6 @@ export default function LoginPage() {
                 required
               />
             </div>
-
-            {error && (
-              <div className="text-sm text-red-500">
-                {error}
-              </div>
-            )}
 
             <Button type="submit" className="w-full" disabled={isEmailLoading}>
               {isEmailLoading ? (

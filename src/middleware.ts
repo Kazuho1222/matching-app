@@ -9,27 +9,28 @@
 // };
 
 import { auth } from "@/lib/auth"
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
-    req.nextUrl.pathname.startsWith('/register')
-  const isProfileSetup = req.nextUrl.pathname.startsWith('/profile/setup')
+export async function middleware(request: NextRequest) {
+  const session = await auth()
+  const isLoggedIn = !!session?.user
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/register')
+  const isProfileSetup = request.nextUrl.pathname.startsWith('/profile/setup')
 
   if (isAuthPage) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-    return null
+    return NextResponse.next()
   }
 
-  if (!isLoggedIn && (req.nextUrl.pathname.startsWith('/dashboard') || isProfileSetup)) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  if (!isLoggedIn && (request.nextUrl.pathname.startsWith('/dashboard') || isProfileSetup)) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return null
-})
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
