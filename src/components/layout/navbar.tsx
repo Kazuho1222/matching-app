@@ -2,6 +2,7 @@
 
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
+import { AvatarIcon } from "@radix-ui/react-icons"
 import { signOut as authSignOut, useSession } from "next-auth/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -39,12 +40,15 @@ export function Navbar() {
           <ModeToggle />
 
           {isLoggedIn ? (
-            <Button
-              onClick={() => authSignOut({ callbackUrl: "/" })}
-              variant="ghost"
-            >
-              ログアウト
-            </Button>
+            <>
+              <Button
+                onClick={() => authSignOut({ callbackUrl: "/" })}
+                variant="ghost"
+              >
+                ログアウト
+              </Button>
+              <AvatarIcon />
+            </>
           ) : (
             <>
               {!isLoginPage && (

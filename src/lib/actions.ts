@@ -3,6 +3,7 @@
 import { auth, signIn } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { list } from "postcss"
 import { z } from "zod"
 
 // runtimeの設定は削除
@@ -14,7 +15,15 @@ const registerSchema = z.object({
   gender: z.enum(["MALE", "FEMALE", "OTHER"], {
     required_error: "性別を選択してください",
   }),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "生年月日を入力してください"),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "生年月日を入力してください")
+    .refine((dateString) => {
+      const birthDate = new Date(dateString);
+      const age = new Date().getFullYear() - birthDate.getFullYear();
+      const monthDiff = new Date().getMonth() - birthDate.getMonth();
+      return age > 18 || (age === 18 && monthDiff >= 0); // 18歳以上であることを確認
+    }, {
+      message: "18歳未満のユーザーは登録できません。",
+    }),
 })
 
 export async function registerUser(formData: FormData) {
@@ -31,7 +40,7 @@ export async function registerUser(formData: FormData) {
 
     if (!validatedFields.success) {
       const errors = validatedFields.error.issues.map(issue => issue.message)
-      throw new Error(errors.join(', '))
+      throw new Error(errors.join('\n'))
     }
 
     const { name, email, password, gender, birthDate } = validatedFields.data
